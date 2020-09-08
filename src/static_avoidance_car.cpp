@@ -55,8 +55,8 @@ class StaticAvoidance_car{
         geometry_msgs::Point wayPoint;
 
         // Const Values
-        const float SeekDistance = 4;
-        const float ANGLE = 15;
+        const float SeekDistance = 3.4;
+        const float ANGLE = 15; // 원통이 1개여서 ANGLE값 15에서 8로 수정
         const float GAP = 2.5;
 
         double time_status_2;
@@ -162,6 +162,8 @@ class StaticAvoidance_car{
             marker.scale.y = 0.3;
             marker.scale.z = 0.3;
             marker.color.a = 1.0; // Don't forget to set the alpha!
+            marker.scale.x = 0.3;
+            marker.scale.x = 0.3;
             marker.color.r = 0.0;
             marker.color.g = 0.0;
             marker.color.b = 1.0;
@@ -190,7 +192,7 @@ class StaticAvoidance_car{
         
         void obstacle_cb(obstacle_detector::Obstacles raw_obstacle){
         
-            acker_data.drive.speed = 1.6;
+            acker_data.drive.speed = 1.5;
             if(KUUVe_STATUS == STATUS_FINISH) acker_data.drive.speed = 0;
             // TODO:
             //findNearestSegment(raw_obstacle);
@@ -209,9 +211,9 @@ class StaticAvoidance_car{
                     acker_data.drive.steering_angle = 0; 
                     cout << " Distance : " << obstacle_dist_0 << endl;
                     WayPoint_Marker = nearest_segment_center_point_;
-                    cur_SeekDistance = (status_flag_ == false) ? SeekDistance : SeekDistance - 1; 
-                    if (obstacle_dist_0 <= cur_SeekDistance && obstacle_dist_0 > 1.5 && status_flag_ == false) KUUVe_STATUS = STATUS_TURN_RIGHT;
-                    else if (obstacle_dist_0 < cur_SeekDistance && status_flag_ == true)  KUUVe_STATUS = STATUS_TURN_RIGHT;  // 가장 가까운 장애물이 SeekDistance 보다 작아지면 STATUS = 1 로 변환합니다.
+                    //cur_SeekDistance = (status_flag_ == false) ? SeekDistance : SeekDistance - 0.5; 
+                    if (obstacle_dist_0 <= SeekDistance && obstacle_dist_0 > 1.5) KUUVe_STATUS = STATUS_TURN_RIGHT;
+                    //else if (obstacle_dist_0 < cur_SeekDistance && status_flag_ == true)  KUUVe_STATUS = STATUS_TURN_RIGHT;  // 가장 가까운 장애물이 SeekDistance 보다 작아지면 STATUS = 1 로 변환합니다.
                     cout << "STATUS : STATUS_GO" << endl;
                     cout << "status_flag_ : " << status_flag_ << endl; 
                     break;
@@ -222,7 +224,7 @@ class StaticAvoidance_car{
                     obstacle_detector::SegmentObstacle segment;
                     int count_seg_1=0;
                     float steering_angle_;
-                    cur_obstacle = (status_flag_ == false) ? left_obstacle : right_obstacle;  // 삼항연산자를 이용하여 왼쪽에 있으면 left , 아니면 right로 구분.
+                    cur_obstacle = (status_flag_ == false) ? right_obstacle : left_obstacle;  // 삼항연산자를 이용하여 왼쪽에 있으면 left , 아니면 right로 구분.
                     findNearestSegment(cur_obstacle);
                     WayPoint_Marker = nearest_segment_center_point_;
                     cout << "distance : " << DISTANCE << endl;
@@ -255,11 +257,12 @@ class StaticAvoidance_car{
                     angle = innerProduct(SegmentVector);
 
                     INIT = 1;   // STATUS 1 이 실행되면 INIT=1로 변함
-                    steering_angle_ = (status_flag_ == false) ? MAX_STEERING-5 : MIN_STEERING+5;
+                    steering_angle_ = (status_flag_ == false) ? MIN_STEERING-5 : MAX_STEERING+5;
                     if (max_DISTANCE < DISTANCE) max_DISTANCE = DISTANCE;
                     acker_data.drive.steering_angle = steering_angle_*(DISTANCE/max_DISTANCE); 
                     cout<<"angle : " << angle << endl <<"tempAngle : " << tempAngle << endl;
-                    if ((abs(angle - tempAngle) >= ANGLE) || (status_flag_==true) && (SegmentVector.x<2.0)){           // 이전 tempAngle 과 현재 angle 값 비교
+                    cout << "angle - tempAngle : "<< angle - tempAngle << endl;
+                    if ((abs(angle - tempAngle) >= ANGLE)){           // 이전 tempAngle 과 현재 angle 값 비교
                         KUUVe_STATUS = STATUS_DETECT_LEFT;
                         nearest_segment_center_point_.x = 100; 
                         nearest_segment_center_point_.y = 100; 
@@ -267,6 +270,7 @@ class StaticAvoidance_car{
                         DISTANCE = 100;    
                         INIT = 0;   // STATUS=2가 될때 INIT=0으로 변함.
                     }
+                    cout<<"SegmentVector.x : " << SegmentVector.x << endl;
                     cout << "STATUS : STATUS_1" << endl;
                     break;
                 }
@@ -274,7 +278,7 @@ class StaticAvoidance_car{
                 case STATUS_DETECT_LEFT:{
                     //acker_data.drive.speed = 2.0;
                     int count_seg_2=0;
-                    cur_obstacle = (status_flag_ == false) ? left_obstacle : right_obstacle;
+                    cur_obstacle = (status_flag_ == false) ? right_obstacle : left_obstacle;
                     
                     for (auto i : cur_obstacle.segments){
                         wayPoint.x += i.first_point.x;
@@ -288,12 +292,12 @@ class StaticAvoidance_car{
                     wayPoint.x = wayPoint.x/count_seg_2;
                     if (wayPoint.x >= 3) wayPoint.x = 3;
                     cout << "count_seg_2 : " << count_seg_2 << endl;
-                    wayPoint.y = (status_flag_ == false) ? wayPoint.y/count_seg_2 - GAP : wayPoint.y/count_seg_2 + GAP;
+                    wayPoint.y = (status_flag_ == false) ? wayPoint.y/count_seg_2 + GAP : wayPoint.y/count_seg_2 - GAP;
                     // 장애물 중점이 왼쪽에 있다면 GAP을 빼주어 오른쪽에 WayPoint를 설정하고, 아니라면 반대로 한다.
                     WayPoint_Marker = wayPoint;
                     findNearestSegment(cur_obstacle);
                     cout<<"Distance : " << DISTANCE << endl;
-                    acker_data.drive.steering_angle = calSteeringAngle(wayPoint)/1.3;
+                    acker_data.drive.steering_angle = calSteeringAngle(wayPoint)/1.2;
                     cout << "wayPoint.x : " << wayPoint.x << endl;
                     cout << "wayPoint.y : " << wayPoint.y << endl;
                     //cout << "a : " << acker_data.drive.steering_angle << endl;
@@ -301,11 +305,11 @@ class StaticAvoidance_car{
                     //ROS_INFO("WAYPOINT : " WayPoint);
                     // 장애물과 수직거리가 0.8 안에 해당하면 STATUS 3으로 이동
                     cout <<"status_flag : " << status_flag_<< endl;
-                    if (status_flag_ == true && wayPoint.x <1.8 && acker_data.drive.steering_angle > 10){ 
+                    if (status_flag_ == true && acker_data.drive.steering_angle < -10){ 
                         KUUVe_STATUS = STATUS_RESTORE;
                         time_status_2 = ros::Time::now().toSec(); 
                     }
-                    else if (wayPoint.x < 0.8 && status_flag_ == false) { // TODO 더 괜찮은 방식 조건 생각하기
+                    else if (wayPoint.x < 0.8 && wayPoint.x > 0.5&&status_flag_ == false) { // TODO 더 괜찮은 방식 조건 생각하기
                         KUUVe_STATUS = STATUS_TURN_LEFT;
                         geometry_msgs::Point data_2;
                         data_2.x = 100;
@@ -348,7 +352,7 @@ class StaticAvoidance_car{
             //FINISH STATUS
             
             case STATUS_RESTORE:{
-                acker_data.drive.steering_angle =15;
+                acker_data.drive.steering_angle = -15;
                 
                 ros::Duration second_duration(4.0);
                 time_status_4 = ros::Time::now().toSec();
