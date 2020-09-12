@@ -12,7 +12,7 @@
 </ol>
 
 -------------------------
-Fuction: innerProduct
+<h4>Fuction: innerProduct</h4>
 
 장애물과 차량이 이루는 각도를 계산해 장애물을 지나칠 때 회전할 수 있도록 구현
 
