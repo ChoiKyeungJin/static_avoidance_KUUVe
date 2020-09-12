@@ -12,7 +12,9 @@
 
 -------------------------
 Fuction: innerProduct
+
 장애물과 차량이 이루는 각도를 계산해 장애물을 지나칠 때 회전할 수 있도록 구현
+
 <div>
-<img width="200" src= "https://user-images.githubusercontent.com/67793181/92998879-99d42b00-f557-11ea-9e38-6387fb5a1fe3.jpg">
+<img width="1000" src= "https://user-images.githubusercontent.com/67793181/92998879-99d42b00-f557-11ea-9e38-6387fb5a1fe3.jpg">
 </div>
