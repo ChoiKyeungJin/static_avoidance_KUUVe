@@ -23,9 +23,11 @@
 -------------------------
 <h2>case : STATUS_GO </h2>
 
->>진행차선에 장애물이 없고, 왼쪽에 장애물이 있을 경우 wayPoint를 진행차선에 위치시킨다.
+>진행차선에 장애물이 없고, 왼쪽에 장애물이 있을 경우 wayPoint를 진행차선에 위치시킨다.
 
 <div>
 <img width="1000" src="https://user-images.githubusercontent.com/67793181/93022332-d40afe80-f623-11ea-84e0-f73164be07e7.jpg">
->>이후 wayPoint로 접근하다가 wayPoint.x가 일정범위 내로 접근하면 STATUS를 변경합니다.
+이후 wayPoint로 접근하다가 wayPoint.x가 일정범위 내로 접근하면 STATUS를 변경합니다.
 </div>
+
+[\^myfootnote]20.09.13 - 장애물이 raw_obstacle, right_obstacle, left_obstacle 의 세 경우로 박스필터에 의해 구분되는데, 여기서 원하는 데이터를 가져오는게 어려움.
