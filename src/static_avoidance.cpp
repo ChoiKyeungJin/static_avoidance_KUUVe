@@ -146,7 +146,7 @@ class StaticAvoidance{
 
             marker.header.frame_id = "laser";
             marker.header.stamp = ros::Time();
-            marker.ns = "waypoint";
+            marker.ns = "wayPoint";
             marker.id = 0;
             marker.type = visualization_msgs::Marker::SPHERE;
             marker.action = visualization_msgs::Marker::ADD;
@@ -204,9 +204,18 @@ class StaticAvoidance{
                     findNearestSegment(raw_obstacle);
                     float obstacle_dist_0 = distance(nearest_segment_center_point_);
                     acker_data.drive.steering_angle = 0; 
-
+                    cout<<"장애물1.y : " <<nearest_segment_center_point_.y;
+                    if(nearest_segment_center_point_.y>1.0){
+                        wayPoint.y = nearest_segment_center_point_.y-1.5;
+                        acker_data.drive.steering_angle = calSteeringAngle(wayPoint);
+                        WayPoint_Marker = wayPoint;
+                        if (obstacle_dist_0 <= SeekDistance) KUUVe_STATUS = STATUS_TURN_RIGHT;    // 가장 가까운 장애물이 SeekDistance 보다 작아지면 STATUS = 1 로 변환합니다.
+                        else if (status_flag_ == false && nearest_segment_center_point_.y > 0.7) status_flag_ == true;
+                        break;
+                    }
                     if (obstacle_dist_0 <= SeekDistance) KUUVe_STATUS = STATUS_TURN_RIGHT;    // 가장 가까운 장애물이 SeekDistance 보다 작아지면 STATUS = 1 로 변환합니다.
-                    else if (status_flag_ == false && nearest_segment_center_point_.y > 0.7) status_flag_ == true;
+                    else if (status_flag_ == false && nearest_segment_center_point_.y > 0.7) status_flag_ == true;  // 무슨 역할을하는지?
+                    WayPoint_Marker = wayPoint;
                     cout << "STATUS : STATUS_GO" << endl; 
                     break;
                 }
