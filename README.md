@@ -26,6 +26,6 @@
 진행차선에 장애물이 없고, 왼쪽에 장애물이 있을 경우 wayPoint를 진행차선에 위치시킨다.
 
 <div>
-<img width="900" src="https://user-images.githubusercontent.com/67793181/93022332-d40afe80-f623-11ea-84e0-f73164be07e7.jpg">
+<img width="1000" src="https://user-images.githubusercontent.com/67793181/93022332-d40afe80-f623-11ea-84e0-f73164be07e7.jpg">
 이후 wayPoint로 접근하다가 wayPoint.x가 일정범위 내로 접근하면 STATUS를 변경합니다.
 </div>
