@@ -30,4 +30,4 @@
 이후 wayPoint로 접근하다가 wayPoint.x가 일정범위 내로 접근하면 STATUS를 변경합니다.
 </div>
 
-[^1]:20.09.13 - 장애물이 raw_obstacle, right_obstacle, left_obstacle 의 세 경우로 박스필터에 의해 구분되는데, 여기서 원하는 데이터를 가져오는게 어려움.
+20.09.13 - 장애물이 raw_obstacle, right_obstacle, left_obstacle 의 세 경우로 박스필터에 의해 구분되는데, 여기서 원하는 데이터를 가져오는게 어려움.[^scala]
