@@ -20,3 +20,11 @@
 <div>
 <img width="1000" src= "https://user-images.githubusercontent.com/67793181/92998879-99d42b00-f557-11ea-9e38-6387fb5a1fe3.jpg">
 </div>
+-------------------------
+<h2>case : STATUS_GO </h2>
+
+진행차선에 장애물이 없고, 왼쪽에 장애물이 있을 경우 wayPoint를 진행차선에 위치시킨다.
+
+<div>
+<img width="900" src="https://user-images.githubusercontent.com/67793181/93022163-90fc5b80-f622-11ea-8c5f-93e5ef1dd3e0.jpg">
+</div>
