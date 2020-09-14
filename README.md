@@ -10,7 +10,7 @@
   <li>차선 두 개중 진행차선이 아닌 옆 차선에 장애물이 있을 경우 장애물을 무시하고, 진행하도록 하기</li>
   <li>여러환경에서 실험해보며 박스필터의 범위 수정하기</li>
   <li>Imu의 Yaw값을 이용해서 코드를 수정하기</li>
-   Ros를 사용하지만 원리를 이해하는데 도움이 되는 영상: https://www.youtube.com/watch?v=hN8dL55rP5I
+   영상에서는 Matlab을 사용하지만 원리를 이해하는데 도움이 되는 : https://www.youtube.com/watch?v=hN8dL55rP5I
 </ol>
  
 -------------------------
