@@ -7,7 +7,8 @@
 #include <visualization_msgs/Marker.h>
 #include <obstacle_detector/Obstacles.h>
 #include <obstacle_detector/SegmentObstacle.h>
-
+#include <sensor_msgs/Imu.h>
+#include <tf/transform_broadcaster.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
 #include <ackermann_msgs/AckermannDriveStamped.h>
@@ -53,6 +54,7 @@ private:
     float pitch = 0;
     float roll = 0;
     float yaw_d = 0;
+    float YAW = 0;
 
     bool status_flag_ = false;
     //float fixed_yaw = 0;
@@ -112,11 +114,10 @@ public:
             imu->orientation.w);
         tf::Matrix3x3 m(q);
         m.getRPY(roll, pitch, yaw);
-        ​
-            yaw_d = yaw * 180 / M_PI;
+        yaw_d = yaw * 180 / M_PI;
         YAW = yaw_d;
         ​
-            cout << "yaw: " << yaw << endl;
+        cout << "yaw: " << yaw << endl;
         cout << "yaw_d : " << yaw_d << endl;
     }
 
@@ -263,7 +264,10 @@ public:
                 count_seg_1++;
             }
 
-            if (count_seg_1 == 0) count_seg_1 = 1;
+            if (count_seg_1 == 0) {
+                cout<<"장애물이 인식되지 않습니다."<<endl;
+                count_seg_1 =1;
+            }
             segment.first_point.x = segment.first_point.x / count_seg_1;
             segment.last_point.x = segment.last_point.x / count_seg_1;
             segment.first_point.y = segment.first_point.y / count_seg_1;
@@ -351,10 +355,10 @@ public:
         case STATUS_TURN_RIGHT: {
             //acker_data.drive.speed = 2.5;
             float obstacle_dist_3 = 0;
-            findNearestSegment(_obstacle);
+            findNearestSegment(cur_obstacle);
             obstacle_dist_3 = distance(nearest_segment_center_point_);
             cout << "obstacle_dist_3 : " << obstacle_dist_3 << endl;
-            //nearest_segment_center_point_.y = nearest_segment_center_point_.y + 0.3;           =
+            //nearest_segment_center_point_.y = nearest_segment_center_point_.y + 0.3;         
             acker_data.drive.steering_angle = calSteeringAngle(nearest_segment_center_point_);
             wayPoint.x = nearest_segment_center_point_.x;
             wayPoint.y = nearest_segment_center_point_.y;
@@ -374,7 +378,7 @@ public:
 
         case STATUS_RESTORE: {
             acker_data.drive.steering_angle = -14;
-
+            // wayPoint를 이용해서 하고싶지만 2d 라이다 특성상 볼 수 있는 범위가 한정되어 있어서 회전시 장애물이 안잡혀 놓치는경우가 있어서 우선, 시간을 이용해서 구현했다.
             ros::Duration second_duration(3.0);
             time_status_4 = ros::Time::now().toSec();
             cout << "running time :" << time_status_4 << endl;
