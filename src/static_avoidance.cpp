@@ -7,8 +7,8 @@
 #include <visualization_msgs/Marker.h>
 #include <obstacle_detector/Obstacles.h>
 #include <obstacle_detector/SegmentObstacle.h>
-#include <sensor_msgs/Imu.h>
-#include <tf/transform_broadcaster.h>
+#include "sensor_msgs/Imu.h"
+#include "tf/tf.h"
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
 #include <ackermann_msgs/AckermannDriveStamped.h>
@@ -49,12 +49,11 @@ private:
     float SPEED = 0;
     int INIT = 0;       // curve_check 만약 INIT이 0과 1만 쓰이면 bool 타입의 변수로 바꾸어주고, 변수이름(curve_check)도 알아보기 쉬운것으로 바꾸는게 좋을듯
     float angle = 0;
-                    
-    float yaw = 0;          // Add 20.09.13
-    float pitch = 0;
-    float roll = 0;
-    float yaw_d = 0;
-    float YAW = 0;
+    // imu data
+    double yaw = 0;          // Add 20.09.13
+    double pitch = 0;
+    double roll = 0;
+    double yaw_d = 0;
 
     bool status_flag_ = false;
     //float fixed_yaw = 0;
@@ -106,7 +105,7 @@ public:
         imu_sub_ = nh_.subscribe("/gx5/imu/data", 10, &StaticAvoidance::imuCallback, this);
     }
     //Add 20.09.13
-    void imuCallback(const sensor_msgs::ImuConstPtr& imu) {
+    void imuCallback(const sensor_msgs::ImuConstPtr &imu) {
         tf::Quaternion q(
             imu->orientation.x,
             imu->orientation.y,
@@ -115,8 +114,7 @@ public:
         tf::Matrix3x3 m(q);
         m.getRPY(roll, pitch, yaw);
         yaw_d = yaw * 180 / M_PI;
-        YAW = yaw_d;
-        ​
+        //  TODO: yaw값을 STATUS 진입시 저장하고, 그 후로 yaw 값을 비교해서 사용하는 코드 작성
         cout << "yaw: " << yaw << endl;
         cout << "yaw_d : " << yaw_d << endl;
     }
