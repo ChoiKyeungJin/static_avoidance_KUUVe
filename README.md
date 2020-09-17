@@ -32,3 +32,18 @@
 </div>
 
 :octocat:20.09.13 - 장애물이 raw_obstacle, right_obstacle, left_obstacle 의 세 경우로 박스필터에 의해 구분되는데, 여기서 원하는 데이터를 가져오는게 어려움.
+
+-------------------------
+<h2> Left, Right Obstacle Recognition </h2>
+
+2D라이다의 스캔 방향이 반시계방향이므로, 가장먼저 인식 되는것은 오른쪽 장애물이고, 두번째 인식되는 것은 왼쪽 장애물이다.
+LMS151의 경우 오른쪽 장애물이 먼저 인식되고, 그 다음에 왼쪽 장애물이 인식됩니다.
+
+생각 중인 코드:
+ scan_center[1].y > scan_center[0].y 이 식은 장애물이 왼쪽,오른쪽 어디서부터 시작이건 같을 것이다.
+ 그러나 scan_center[1].x > scan_center[0].x 이 경우 왼쪽 장애물이 더 멀리 있는 경우이므로 오른쪽,왼쪽 순서대로 장애물이 놓인 것이다. 
+ 이런식으로 x 좌표를 이용해 장애물을 비교하는 코드를 구현하고싶다.
+
+<div>
+<img width="1000" src="https://user-images.githubusercontent.com/67793181/93403667-274eac80-f8c3-11ea-8454-80081fb9c9e6.jpg">
+</div>
