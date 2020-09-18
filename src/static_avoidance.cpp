@@ -57,8 +57,9 @@ class StaticAvoidance{
         // Const Values
         const float SeekDistance = 3.5;
         const float ANGLE = 15;
-        const float GAP = 2.5;
+        const float GAP = 1;
 
+        double time_status_1;
         double time_status_2;
         double time_status_4;
  
@@ -97,12 +98,7 @@ class StaticAvoidance{
             vis_pub_ = nh_.advertise<visualization_msgs::Marker>( "visualization_marker", 10 );
         }
 
-        void exect(){       
-            if (INIT == 0){             
-                acker_data.drive.speed = 1;
-                acker_data.drive.steering_angle = 0;
-            }
-        }
+        
 
         float distance(const geometry_msgs::Point point){      
             float dist = sqrt(point.x*point.x+point.y*point.y);
@@ -202,26 +198,22 @@ class StaticAvoidance{
                     cout << "TEST" << endl;
                     //acker_data.drive.speed = 3;
                     //find nearest obstacle point
-                    cur_obstacle = (status_flag_ == false) ? right_obstacle : left_obstacle;
                     findNearestSegment(raw_obstacle);
                     float obstacle_dist_0 = distance(nearest_segment_center_point_);
                     acker_data.drive.steering_angle = 0; 
 
-
-                    findNearestSegment(cur_obstacle);
-                    if (nearest_segment_center_point_.y > 0.8 && status_flag_ == false) status_flag_ == true;    // 가장 가까운 장애물이 SeekDistance 보다 작아지면 STATUS = 1 로 변환합니다.
-                    else if (obstacle_dist_0 < SeekDistance) KUUVe_STATUS = STATUS_TURN;
+                    if (obstacle_dist_0 < SeekDistance && obstacle_dist_0 > 1.5) KUUVe_STATUS = STATUS_TURN;
                     cout << "STATUS : STATUS_GO" << endl; 
-                    break;
+                    break;                    
                 }
 
                 case STATUS_TURN:{
                     //acker_data.drive.speed = 3;
                     obstacle_detector::SegmentObstacle segment;
-                    cout << "status_flag_ : "<< status_flag_ << endl;
+                    if(status_flag_ == true) cout << "status_flag_ : " << status_flag_ << endl;
                     int count_seg_1=0;
-                    
-                    cur_obstacle = (status_flag_ == false) ? right_obstacle : left_obstacle;  // 삼항연산자를 이용하여 왼쪽에 있으면 left , 아니면 right로 구분.
+                    float segment_average_y = 0;
+                    cur_obstacle = (status_flag_ == false) ? left_obstacle : right_obstacle;  // 삼항연산자를 이용하여 왼쪽에 있으면 left , 아니면 right로 구분.
                     findNearestSegment(cur_obstacle);
                     for (auto i : cur_obstacle.segments){
                         segment.first_point.x += i.first_point.x;
@@ -231,13 +223,14 @@ class StaticAvoidance{
                         count_seg_1++;
                     }
 
-                    if(count_seg_1 == 0) count_seg_1 = 1;
+                    
                     segment.first_point.x = segment.first_point.x/count_seg_1;
                     segment.last_point.x = segment.last_point.x/count_seg_1;
                     segment.first_point.y = segment.first_point.y/count_seg_1;
                     segment.last_point.y = segment.last_point.y/count_seg_1;
-                    
-                    
+                    segment_average_y = abs(segment.first_point.y +segment.last_point.y)/2;
+                    cout << "segment_average_y : " << segment_average_y << endl; 
+                    /*
                     float tempAngle = 0;    // 로컬 변수 선언과 동시에 초기화
                     
                     geometry_msgs::Point data_1;
@@ -252,8 +245,11 @@ class StaticAvoidance{
                     angle = innerProduct(SegmentVector);
 
                     INIT = 1;   // STATUS 1 이 실행되면 INIT=1로 변함
-                    acker_data.drive.steering_angle = (status_flag_ == false) ? MIN_STEERING+5 : MAX_STEERING-5;  // 장애물 중점이 왼쪽에 있다면 20 아니면 -20를 전달.
-                    cout<<"angle : " << angle << endl <<"tempAngle : " << tempAngle << endl;
+                    */
+                    acker_data.drive.steering_angle = (status_flag_ == false) ? MAX_STEERING-8 : MIN_STEERING+8;  // 각도를 좀 줄였음.
+                    /*
+                    cout<<"angle : " << angle << endl << "tempAngle : " << tempAngle << endl;
+                    
                     if ((abs(angle - tempAngle) >= ANGLE)){           // 이전 tempAngle 과 현재 angle 값 비교
                         KUUVe_STATUS = STATUS_RESTORE;
                         nearest_segment_center_point_.x = 100; 
@@ -262,6 +258,15 @@ class StaticAvoidance{
                         DISTANCE = 100;    
                         INIT = 0;   // STATUS=2가 될때 INIT=0으로 변함.
                     }
+                    */
+                    if (segment_average_y > 1.0 && status_flag_ == false){ // TODO : 기준값을 물체마다 바꿔줘야함. 
+                        KUUVe_STATUS = STATUS_RESTORE;
+                        cout<<"***********************************"<<endl<<"CHANGE!!!!!"<<endl << "*******************************"<<endl;
+                    }
+                    else if (segment_average_y > 0.8 && status_flag_ == true ){
+                        KUUVe_STATUS = STATUS_LAST_RESTORE;
+                        double time_status_1 = ros::Time::now().toSec(); 
+                    }
                     cout << "STATUS : STATUS_TURN" << endl;
                     break;
                 }
@@ -269,7 +274,7 @@ class StaticAvoidance{
                 case STATUS_RESTORE:{
                     //acker_data.drive.speed = 2.0;
                     int count_seg_2=0;
-                    cur_obstacle = (status_flag_ == false) ? right_obstacle : left_obstacle;
+                    cur_obstacle = (status_flag_ == false) ? left_obstacle : right_obstacle;
                     
                     for (auto i : cur_obstacle.segments){
                         wayPoint.x += i.first_point.x;
@@ -280,26 +285,28 @@ class StaticAvoidance{
 
                     }
                     
-                    wayPoint.x = wayPoint.x/count_seg_2;
-                    if (wayPoint.x >= 3) wayPoint.x = 3;
-                    cout << "count_seg_2 : " << count_seg_2 << endl;
+                    wayPoint.x = wayPoint.x/(count_seg_2*2);
+                    wayPoint.y = wayPoint.y/(count_seg_2*2);
+
+                    cout << "wayPoint.y : " << wayPoint.y << endl;
                     wayPoint.y = (status_flag_ == false) ? wayPoint.y/count_seg_2 - GAP : wayPoint.y/count_seg_2 + GAP;
+
                     // 장애물 중점이 왼쪽에 있다면 GAP을 빼주어 오른쪽에 WayPoint를 설정하고, 아니라면 반대로 한다.
                     WayPoint_Marker = wayPoint;
                     
-                    acker_data.drive.steering_angle = calSteeringAngle(wayPoint)/1.2;
                     cout << "wayPoint.x : " << wayPoint.x << endl;
                     cout << "wayPoint.y : " << wayPoint.y << endl;
-                    //cout << "a : " << acker_data.drive.steering_angle << endl;
 
-                    //ROS_INFO("WAYPOINT : " WayPoint);
-                    // 장애물과 수직거리가 0.8 안에 해당하면 STATUS 3으로 이동
-                    cout <<"status_flag : " << status_flag_<< endl;
-                    if (status_flag_ == true && wayPoint.x <1.5 ){ 
+                    acker_data.drive.steering_angle = calSteeringAngle(wayPoint)/1.2; // TODO 실제 테스트에서 wayPoint 잘 못잡으면 고정값 넣을 예정
+                    
+                    if (status_flag_ == true ) cout <<"status_flag : " << status_flag_<< endl;
+                    /*
+                    if (status_flag_ == true && wayPoint.x <1.5){ 
                         KUUVe_STATUS = STATUS_LAST_RESTORE;
                         time_status_2 = ros::Time::now().toSec(); 
                     }
-                    else if (wayPoint.x < 0.9 && wayPoint.x >0.5 && status_flag_ == false) { // TODO 더 괜찮은 방식 조건 생각하기
+                    */
+                    if (wayPoint.x > 2 && status_flag_ == false) { // TODO 여기에 raw_obastacle의 x값을 넣어도 될것 같음 일단 테스트 해봐야함.
                         KUUVe_STATUS = STATUS_GO_NEXT;
                         geometry_msgs::Point data_2;
                         data_2.x = 100;
@@ -323,13 +330,12 @@ class StaticAvoidance{
                     findNearestSegment(raw_obstacle);
                     obstacle_dist_3 = distance(nearest_segment_center_point_);
                     cout << "obstacle_dist_3 : " << obstacle_dist_3 << endl;
-                    //nearest_segment_center_point_.y = nearest_segment_center_point_.y + 0.3;           =
                     acker_data.drive.steering_angle = calSteeringAngle(nearest_segment_center_point_);
                     wayPoint.x = nearest_segment_center_point_.x;
                     wayPoint.y = nearest_segment_center_point_.y;
                     WayPoint_Marker = wayPoint;
 
-                    if (obstacle_dist_3 < 5 && status_flag_ ==false)
+                    if (obstacle_dist_3 < 5 && status_flag_ == false)
                     {
                         KUUVe_STATUS = STATUS_GO;
                         DISTANCE = 100.0;
@@ -342,12 +348,12 @@ class StaticAvoidance{
             //FINISH STATUS
             
             case STATUS_LAST_RESTORE:{
-                acker_data.drive.steering_angle =-14;
+                acker_data.drive.steering_angle = 15;
                 
                 ros::Duration second_duration(3.0);
                 time_status_4 = ros::Time::now().toSec();
                 cout << "running time :" << time_status_4 << endl; 
-                if(time_status_4-time_status_2 >4 ) KUUVe_STATUS = STATUS_FINISH; // 시간을 이용하여 STATUS 넘어감, 다른 방식 고려
+                if(time_status_4-time_status_1 > 2 ) KUUVe_STATUS = STATUS_FINISH; // 시간을 이용하여 STATUS 넘어감, 다른 방식 고려
                 cout<<"STATUS : STATUS_LAST_RESTORE" << endl;
                 break;
             }
@@ -379,7 +385,6 @@ int main(int argc, char **argv){
     StaticAvoidance staticAvoidance;        // 이 부분에서 생성자가 실행되고 start()가 작동함.
 
     while(ros::ok()){
-        //staticAvoidance.exect();    // INIT==0 이면 직진
         staticAvoidance.acker_pub.publish(staticAvoidance.getAckerData());      // acker_data를 받아온다. speed, steering_angle
         staticAvoidance.visualization_waypoint();
         //cout <<"steering angle : " << staticAvoidance.getAckerData().drive.steering_angle << endl;
