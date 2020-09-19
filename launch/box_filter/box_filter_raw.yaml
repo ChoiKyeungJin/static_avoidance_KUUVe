@@ -4,7 +4,7 @@ scan_filter_chain:
   params:
     box_frame: laser
     max_x: 100.0
-    max_y: -1.0
+    max_y: -0.85
     max_z: 0.3
     min_x: 0.0
     min_y: -100.0
@@ -18,7 +18,7 @@ scan_filter_chain:
     max_y: 100.0
     max_z: 0.3
     min_x: 0.0
-    min_y: 1.0
+    min_y: 0.7
     min_z: -0.28
 - name: inner_box_filter
   type: laser_filters/LaserScanBoxFilter
@@ -47,7 +47,7 @@ scan_filter_chain:
     max_x: 100.0
     max_y: 100.0
     max_z: 0.3
-    min_x: 7.5
+    min_x: 10
     min_y: -100.0
     min_z: -0.28
 - name: range_filter
